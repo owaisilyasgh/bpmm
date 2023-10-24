@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Weather Event Tracker</title>
+    <!-- Include Bootstrap for styling and collapse functionality -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- ... existing styles and other head elements -->
+  </head>
+
+  <body>
+    <main class="container mt-5">
+      <section class="row mb-3" aria-labelledby="time-section">
+        <div class="col">
+          <h5 id="time-section">Current Time:</h5>
+          <p id="currentTime"></p>
+        </div>
+      </section>
+
+      <section class="row mb-3" aria-labelledby="event-section">
+        <div class="col">
+          <h5 id="event-section">Current Event:</h5>
+          <p id="currentEvent"></p>
+        </div>
+      </section>
+
+      <section class="row mb-3" aria-labelledby="time-remaining-section">
+        <div class="col">
+          <h5 id="time-remaining-section">Time Remaining in Current Event:</h5>
+          <p id="timeRemainingInCurrentEvent"></p>
+        </div>
+      </section>
+      
+      
+
+      <section class="row mb-3" aria-labelledby="table-section">
+        <div class="col">
+          <h5 id="table-section">Table Data:</h5>
+          <div id="tableData"></div> <!-- Ensure the table generated in your script has classes "table table-sm table-striped table-bordered table-hover" -->
+        </div>
+      </section>
+
+      <section class="row mb-3" aria-labelledby="new-event-section">
+        <div class="col">
+          <h5 id="new-event-section">Time to New Event:</h5>
+          <p id="timeToNewEvent"></p>
+        </div>
+      </section>
+    </main>
+    <!-- ... existing scripts -->
+  </body>
+  <!-- Include necessary scripts -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js" defer></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <script src="script.js" defer></script>
+
+</html>
