@@ -87,7 +87,6 @@ function calculateTimeToNewEvent(events) {
   return "No new event.";
 }
 
-// Separate output functions
 function updateTableData(data) {
   const tableDataDiv = document.getElementById('tableData');
   let tableContent = '<table class="table table-sm table-striped table-bordered table-hover"><thead><tr><th>Start Time</th><th>End Time</th><th>Duration</th><th style="white-space: nowrap; display: inline-block;">+- hPa</th><th>Merged</th></tr></thead><tbody>';
@@ -98,30 +97,23 @@ function updateTableData(data) {
   tableDataDiv.innerHTML = tableContent;
 }
 
-
 function logCurrentTime() {
   const now = new Date();
   const offsetMilliseconds = timeOffsetHours * 3600000;
   now.setTime(now.getTime() + offsetMilliseconds);
-
   const day = now.getDate();
   const month = now.toLocaleString('default', {
     month: 'long'
   });
   const year = now.getFullYear();
-
   const hours = String(now.getHours()).padStart(2, '0');
   const minutes = String(now.getMinutes()).padStart(2, '0');
   const seconds = String(now.getSeconds()).padStart(2, '0');
-
   const formattedDateTime = `${month} ${day}, ${year} ${hours}:${minutes}:${seconds}`;
   updateCurrentTime(formattedDateTime);
   // Commented out console.log
   // console.log(`Updated Time: ${formattedDateTime}`);
 }
-
-
-
 
 function updateCurrentEvent(event) {
   const currentEventDiv = document.getElementById('currentEvent');
@@ -157,7 +149,6 @@ function calculateTimeRemainingInCurrentEvent(currentEvent) {
 
   const currentTime = new Date();
   currentTime.setHours(currentTime.getHours() + timeOffsetHours); // Ensure time offset is applied
-
   const eventEndTime = new Date(currentEvent.endTime);
   const timeRemainingMillis = eventEndTime - currentTime;
 
@@ -183,11 +174,9 @@ async function fetchBarometricData() {
 
 async function fetchData() {
   const data = await fetchBarometricData();
-
   const pressureData = data.hourly.surface_pressure;
   const timeData = data.hourly.time;
   const roundedData = pressureData.map(p => parseFloat(p.toFixed(1)));
-
   const eventObj = findPeaksAndTroughs(roundedData);
   tableDataWithEvents = [];
 
@@ -233,24 +222,16 @@ async function fetchData() {
   const timeToNewEvent = calculateTimeToNewEvent(tableDataWithEvents);
   const timeRemainingInCurrentEvent = calculateTimeRemainingInCurrentEvent(currentEvent);
 
-
-
-  // const eventList = document.querySelector(".list-group"); // Select the list group in the card
-  // eventList.innerHTML = ""; // Clear existing events
-
   tableDataWithEvents.forEach(eventData => {
     const eventItem = document.createElement("li");
     eventItem.classList.add("list-group-item");
-
     const headerLink = document.createElement("a");
     headerLink.setAttribute("data-toggle", "collapse");
     headerLink.setAttribute("href", `#event${eventData.startTime}`);
     headerLink.textContent = `${eventData.startTime} to ${eventData.endTime}`;
-
     const collapseDiv = document.createElement("div");
     collapseDiv.classList.add("collapse");
     collapseDiv.setAttribute("id", `event${eventData.startTime}`);
-
     const cardDiv = document.createElement("div");
     cardDiv.classList.add("card", "card-body");
     cardDiv.innerHTML = `
@@ -319,7 +300,6 @@ function updateCurrentTime(time) {
   const currentTimeDiv = document.getElementById('currentTime');
   currentTimeDiv.innerHTML = time;
 }
-
 
 fetchData();
 setInterval(fetchData, apiCallIntervalInMinutes * 60 * 1000);
