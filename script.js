@@ -90,7 +90,7 @@ function calculateTimeToNewEvent(events) {
 // Separate output functions
 function updateTableData(data) {
   const tableDataDiv = document.getElementById('tableData');
-  let tableContent = '<table class="table table-sm table-striped table-bordered table-hover"><thead><tr><th>Start Time</th><th>End Time</th><th>Duration</th><th>Pressure Difference</th><th>Merged</th></tr></thead><tbody>';
+  let tableContent = '<table class="table table-sm table-striped table-bordered table-hover"><thead><tr><th>Start Time</th><th>End Time</th><th>Duration</th><th>+- hPa</th><th>Merged</th></tr></thead><tbody>';
   data.forEach(e => {
     tableContent += `<tr><td>${e.startTime}</td><td>${e.endTime}</td><td>${e.duration}</td><td>${e.pressureDiff}</td><td>${e.merged ? 'Yes' : 'No'}</td></tr>`;
   });
