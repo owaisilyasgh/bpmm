@@ -1,5 +1,3 @@
-# bpmm
-
 # Atmospheric Pressure Tracker
 
 This project fetches atmospheric pressure data and identifies significant pressure events based on the data. It fetches data from an API, identifies peaks and troughs, calculates durations, identifies ongoing events, and updates time at regular intervals.
