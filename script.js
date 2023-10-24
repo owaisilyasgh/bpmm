@@ -164,7 +164,25 @@ function calculateTimeRemainingInCurrentEvent(currentEvent) {
 }
 
 async function fetchBarometricData() {
-  const apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=43.7001&longitude=-79.4163&hourly=surface_pressure&timeformat=unixtime&timezone=America%2FNew_York&past_days=1&forecast_days=3";
+  const position = await new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(resolve, reject);
+  });
+  const {
+    latitude,
+    longitude
+  } = position.coords;
+
+  // Fetch city name using latitude and longitude
+  const reverseGeocodeUrl = `https://geocode.maps.co/reverse?lat=${latitude}&lon=${longitude}`;
+  const geoResponse = await fetch(reverseGeocodeUrl);
+  const geoData = await geoResponse.json();
+  const cityName = geoData.address.city;
+
+  // Update HTML to show city name
+  const timeSectionHeader = document.getElementById('time-section');
+  timeSectionHeader.textContent = `Current Time in ${cityName}:`;
+
+  const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=surface_pressure&timeformat=unixtime&timezone=America%2FNew_York&past_days=1&forecast_days=3`;
   const response = await fetch(apiUrl, {
     cache: 'no-store'
   });
