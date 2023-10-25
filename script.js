@@ -98,19 +98,19 @@ function calculateTimeToNewEvent(events) {
 
 function updateTableData(data) {
   const tableDataDiv = document.getElementById('tableData');
-  let tableContent = '<table class="table table-sm table-striped table-bordered table-hover"><thead><tr><th>Start Time</th><th>End Time</th><th>Duration</th><th style="white-space: nowrap;">+- hPa</th><th>Merged</th></tr></thead><tbody>';
-  
+  let tableContent = '<table class="table table-sm table-striped table-bordered table-hover"><thead><tr><th>Start Time</th><th>End Time</th><th style="text-align: center;"><i class="iconoir-clock"></i></th><th style="text-align: center;"><i class="iconoir-dew-point"></i></th><th style="text-align: center;"><i class="iconoir-vertical-merge"></i></th></tr></thead><tbody>';
+
   const currentTime = new Date();
   currentTime.setHours(currentTime.getHours() + timeOffsetHours);
-  
+
   data.forEach(e => {
     const eventStartTime = new Date(e.startTime);
     const eventEndTime = new Date(e.endTime);
     const isCurrentEvent = currentTime >= eventStartTime && currentTime <= eventEndTime;
-    
+
     tableContent += `<tr style="background-color: ${isCurrentEvent ? highlightColor : 'transparent'}"><td>${moment(eventStartTime).format(tableDataTimeFormat)}</td><td>${moment(eventEndTime).format(tableDataTimeFormat)}</td><td>${e.duration}</td><td>${e.pressureDiff}</td><td>${e.merged ? 'Yes' : 'No'}</td></tr>`;
   });
-  
+
   tableContent += '</tbody></table>';
   tableDataDiv.innerHTML = tableContent;
 }
@@ -129,12 +129,15 @@ function logCurrentTime() {
   const seconds = String(now.getSeconds()).padStart(2, '0');
   const formattedDateTime = `${month} ${day}, ${year} ${hours}:${minutes}:${seconds}`;
   updateCurrentTime(formattedDateTime);
+  // Commented out console.log
+  // console.log(`Updated Time: ${formattedDateTime}`);
 }
 
 function updateCurrentEvent(event) {
   const currentEventDiv = document.getElementById('currentEvent');
   if (event) {
-    currentEventDiv.innerHTML = `${moment(new Date(event.startTime)).format(currentEventTimeFormat)} to ${moment(new Date(event.endTime)).format(currentEventTimeFormat)} - ${event.duration} - [+-${event.pressureDiff} hPa]`;
+    currentEventDiv.innerHTML = `${moment(new Date(event.startTime)).format(currentEventTimeFormat)} to ${moment(new Date(event.endTime)).format(currentEventTimeFormat)} - ${event.duration} - ${event.pressureDiff} hPa`;
+
   } else {
     currentEventDiv.innerHTML = "No current event.";
   }
@@ -188,10 +191,13 @@ async function fetchBarometricData() {
     longitude
   } = position.coords;
 
+  // Fetch city name using latitude and longitude
   const reverseGeocodeUrl = `https://geocode.maps.co/reverse?lat=${latitude}&lon=${longitude}`;
   const geoResponse = await fetch(reverseGeocodeUrl);
   const geoData = await geoResponse.json();
   const cityName = geoData.address.city;
+
+  // Update HTML to show city name
   const timeSectionHeader = document.getElementById('time-section');
   timeSectionHeader.textContent = `Current Time in ${cityName}:`;
 
@@ -289,6 +295,41 @@ async function fetchData() {
   updateTimeToNewEvent(calculateTimeToNewEvent(tableDataWithEvents));
   updateTimeRemainingInCurrentEvent(calculateTimeRemainingInCurrentEvent(currentEvent));
   updateTimeRemainingInCurrentEvent(currentEvent);
+}
+
+//This is incomplete and will require further development
+function createPressureTimeChart(timeData, pressureData) {
+  const ctx = document.getElementById('pressureTimeChart').getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: timeData,
+      datasets: [{
+        label: 'Pressure over Time',
+        data: pressureData,
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1,
+        fill: false
+      }]
+    },
+    options: {
+      scales: {
+        x: {
+          type: 'time',
+          title: {
+            display: true,
+            text: 'Time'
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Pressure'
+          }
+        }
+      }
+    }
+  });
 }
 
 function updateCurrentTime(time) {
