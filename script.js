@@ -1,7 +1,7 @@
 const threshold = 0.09;
 const minPressureDiff = 1;
 const timeOffsetHours = 0;
-const apiCallIntervalInMinutes = 1;
+const apiCallIntervalInMinutes = 5;
 const mergeThreshold = 1;
 const highlightColor = '#e8e074';
 
