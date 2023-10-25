@@ -44,6 +44,41 @@ function mergeEvents(events) {
   return merged;
 }
 
+// Function to fetch city name based on latitude and longitude
+async function fetchCityName(latitude, longitude) {
+  const geocodeStartTime = performance.now();
+  geocodeLastAccess = new Date().toLocaleTimeString();
+  geocodeReqCount++;
+  
+  try {
+    const apiUrl = `https://geocode.maps.co/reverse?lat=${latitude}&lon=${longitude}`;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    const city = data.address.town || data.address.city || "Unknown location";
+    console.log("City:", city);
+    document.getElementById("time-section").innerText = `Current Time in ${city}:`;
+
+    const geocodeEndTime = performance.now();
+    geocodeRespTime = (geocodeEndTime - geocodeStartTime).toFixed(2);
+
+    updateGeocodeStats(geocodeStartTime.toFixed(2), geocodeReqCount, geocodeRespTime, geocodeErrCount, geocodeLastAccess);
+  } catch (error) {
+    geocodeErrCount++;
+    updateGeocodeStats(geocodeStartTime.toFixed(2), geocodeReqCount, geocodeRespTime, geocodeErrCount, geocodeLastAccess);
+    console.log("Error fetching city name:", error);
+  }
+}
+
+function updateGeocodeStats(loadTime, reqCount, respTime, errCount, lastAccess) {
+  document.getElementById('geoLoadTime').innerText = loadTime + ' ms';
+  document.getElementById('geoReqCount').innerText = reqCount;
+  document.getElementById('geoRespTime').innerText = respTime + ' ms';
+  document.getElementById('geoErrCount').innerText = errCount;
+  document.getElementById('geoLastAccess').innerText = lastAccess;
+}
+
+
+
 function findPeaksAndTroughs(array) {
   const start = 1;
   const end = array.length - 2;
@@ -178,11 +213,11 @@ let barometricErrCount = 0;
 let barometricRespTime = 0;
 let barometricLastAccess = 'N/A';
 
-let geoReqCount = 0;
-let geoErrCount = 0;
-let geoRespTime = 0;
-let geoLoadTime = 0;
-let geoLastAccess = 'N/A';
+let geocodeReqCount = 0;
+let geocodeErrCount = 0;
+let geocodeRespTime = 0;
+let geocodeLoadTime = 0;
+let geocodeLastAccess = 'N/A';
 
 function updateStats(apiType, loadTime, reqCount, respTime, errCount, lastAccess) {
   document.getElementById(`${apiType}LoadTime`).innerText = loadTime + ' ms';
@@ -197,15 +232,9 @@ async function fetchBarometricData() {
   barometricLastAccess = new Date().toLocaleTimeString();
   
   try {
-    const geoStartTime = performance.now();
     const position = await new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(resolve, reject);
     });
-    const geoEndTime = performance.now();
-    geoLoadTime = geoRespTime = (geoEndTime - geoStartTime).toFixed(2);
-    geoReqCount++;
-    geoLastAccess = new Date().toLocaleTimeString();
-    updateStats('geo', geoLoadTime, geoReqCount, geoRespTime, geoErrCount, geoLastAccess);
 
     const { latitude, longitude } = position.coords;
     const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=surface_pressure&timeformat=unixtime&timezone=America%2FNew_York&past_days=1&forecast_days=3`;
@@ -223,9 +252,6 @@ async function fetchBarometricData() {
     // Update stats for Barometric API in case of error
     barometricErrCount++;
     updateStats('barometric', barometricStartTime.toFixed(2), barometricReqCount, barometricRespTime, barometricErrCount, barometricLastAccess);
-    // Update stats for Geolocation API in case of error
-    geoErrCount++;
-    updateStats('geo', geoLoadTime, geoReqCount, geoRespTime, geoErrCount, geoLastAccess);
     throw err;
   }
 }
@@ -328,3 +354,8 @@ setInterval(fetchData, apiCallIntervalInMinutes * 60 * 1000);
 setInterval(logCurrentTime, 1000);
 // Update the interval to refresh every millisecond for higher accuracy
 setInterval(updateTimeToNewEvent, 1);
+
+navigator.geolocation.getCurrentPosition((position) => {
+  const { latitude, longitude } = position.coords;
+  fetchCityName(latitude, longitude);
+});
