@@ -1,14 +1,23 @@
 const threshold = 0.09;
 const minPressureDiff = 1;
-const timeOffsetHours = 0;
+const timeOffsetHours = 2;
 const apiCallIntervalInMinutes = 5;
 const mergeThreshold = 1;
+const highlightColor = '#e8e074';
+
+// Global variable for table data time format.
+// Examples of valid formats:
+// "MM-DD-YYYY" for "10-24-2023"
+// "DD/MM/YYYY" for "24/10/2023"
+// "ddd, MMM Do YYYY" for "Tue, Oct 24th 2023"
+// "h:mm A" for "4:15 PM"
+// Use any combination or solo. For more formats, refer to moment.js documentation.
+const tableDataTimeFormat = "MMM-DD h:mm a";
+const currentEventTimeFormat = "MMM-DD h:mm a";
 
 function convertUnixToFormattedTime(unixTime) {
   const date = new Date(unixTime * 1000);
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${date.toDateString()} ${hours}:${minutes}`;
+  return moment(date).format('YYYY-MM-DD h:mm A');
 }
 
 let tableDataWithEvents = [];
@@ -90,13 +99,21 @@ function calculateTimeToNewEvent(events) {
 function updateTableData(data) {
   const tableDataDiv = document.getElementById('tableData');
   let tableContent = '<table class="table table-sm table-striped table-bordered table-hover"><thead><tr><th>Start Time</th><th>End Time</th><th>Duration</th><th style="white-space: nowrap;">+- hPa</th><th>Merged</th></tr></thead><tbody>';
+  
+  const currentTime = new Date();
+  currentTime.setHours(currentTime.getHours() + timeOffsetHours);
+  
   data.forEach(e => {
-    tableContent += `<tr><td>${e.startTime}</td><td>${e.endTime}</td><td>${e.duration}</td><td>${e.pressureDiff}</td><td>${e.merged ? 'Yes' : 'No'}</td></tr>`;
+    const eventStartTime = new Date(e.startTime);
+    const eventEndTime = new Date(e.endTime);
+    const isCurrentEvent = currentTime >= eventStartTime && currentTime <= eventEndTime;
+    
+    tableContent += `<tr style="background-color: ${isCurrentEvent ? highlightColor : 'transparent'}"><td>${moment(eventStartTime).format(tableDataTimeFormat)}</td><td>${moment(eventEndTime).format(tableDataTimeFormat)}</td><td>${e.duration}</td><td>${e.pressureDiff}</td><td>${e.merged ? 'Yes' : 'No'}</td></tr>`;
   });
+  
   tableContent += '</tbody></table>';
   tableDataDiv.innerHTML = tableContent;
 }
-
 
 function logCurrentTime() {
   const now = new Date();
@@ -112,14 +129,12 @@ function logCurrentTime() {
   const seconds = String(now.getSeconds()).padStart(2, '0');
   const formattedDateTime = `${month} ${day}, ${year} ${hours}:${minutes}:${seconds}`;
   updateCurrentTime(formattedDateTime);
-  // Commented out console.log
-  // console.log(`Updated Time: ${formattedDateTime}`);
 }
 
 function updateCurrentEvent(event) {
   const currentEventDiv = document.getElementById('currentEvent');
   if (event) {
-    currentEventDiv.innerHTML = `${event.startTime} to ${event.endTime} - ${event.duration} - ${event.pressureDiff}`;
+    currentEventDiv.innerHTML = `${moment(new Date(event.startTime)).format(currentEventTimeFormat)} to ${moment(new Date(event.endTime)).format(currentEventTimeFormat)} - ${event.duration} - [+-${event.pressureDiff} hPa]`;
   } else {
     currentEventDiv.innerHTML = "No current event.";
   }
@@ -173,13 +188,10 @@ async function fetchBarometricData() {
     longitude
   } = position.coords;
 
-  // Fetch city name using latitude and longitude
   const reverseGeocodeUrl = `https://geocode.maps.co/reverse?lat=${latitude}&lon=${longitude}`;
   const geoResponse = await fetch(reverseGeocodeUrl);
   const geoData = await geoResponse.json();
   const cityName = geoData.address.city;
-
-  // Update HTML to show city name
   const timeSectionHeader = document.getElementById('time-section');
   timeSectionHeader.textContent = `Current Time in ${cityName}:`;
 
@@ -278,42 +290,6 @@ async function fetchData() {
   updateTimeRemainingInCurrentEvent(calculateTimeRemainingInCurrentEvent(currentEvent));
   updateTimeRemainingInCurrentEvent(currentEvent);
 }
-
-//This is incomplete and will require further development
-function createPressureTimeChart(timeData, pressureData) {
-  const ctx = document.getElementById('pressureTimeChart').getContext('2d');
-  const chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: timeData,
-      datasets: [{
-        label: 'Pressure over Time',
-        data: pressureData,
-        borderColor: 'rgba(75, 192, 192, 1)',
-        borderWidth: 1,
-        fill: false
-      }]
-    },
-    options: {
-      scales: {
-        x: {
-          type: 'time',
-          title: {
-            display: true,
-            text: 'Time'
-          }
-        },
-        y: {
-          title: {
-            display: true,
-            text: 'Pressure'
-          }
-        }
-      }
-    }
-  });
-}
-
 
 function updateCurrentTime(time) {
   const currentTimeDiv = document.getElementById('currentTime');
