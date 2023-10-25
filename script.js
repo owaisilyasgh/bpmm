@@ -89,13 +89,14 @@ function calculateTimeToNewEvent(events) {
 
 function updateTableData(data) {
   const tableDataDiv = document.getElementById('tableData');
-  let tableContent = '<table class="table table-sm table-striped table-bordered table-hover"><thead><tr><th>Start Time</th><th>End Time</th><th>Duration</th><th style="white-space: nowrap; display: inline-block;">+- hPa</th><th>Merged</th></tr></thead><tbody>';
+  let tableContent = '<table class="table table-sm table-striped table-bordered table-hover"><thead><tr><th>Start Time</th><th>End Time</th><th>Duration</th><th style="white-space: nowrap;">+- hPa</th><th>Merged</th></tr></thead><tbody>';
   data.forEach(e => {
     tableContent += `<tr><td>${e.startTime}</td><td>${e.endTime}</td><td>${e.duration}</td><td>${e.pressureDiff}</td><td>${e.merged ? 'Yes' : 'No'}</td></tr>`;
   });
   tableContent += '</tbody></table>';
   tableDataDiv.innerHTML = tableContent;
 }
+
 
 function logCurrentTime() {
   const now = new Date();
@@ -132,17 +133,29 @@ function updateTimeToNewEvent() {
 function updateTimeRemainingInCurrentEvent(currentEvent) {
   const timeRemainingDiv = document.getElementById('timeRemainingInCurrentEvent');
 
-  function updateTimer() {
-    const timeRemaining = calculateTimeRemainingInCurrentEvent(currentEvent);
-    timeRemainingDiv.innerHTML = timeRemaining;
+  if (!currentEvent) {
+    timeRemainingDiv.innerHTML = "No current event.";
+    return;
+  }
 
-    if (timeRemaining !== "Event ended." && timeRemaining !== "No current event.") {
-      setTimeout(updateTimer, 1);
+  const eventEndTime = new Date(currentEvent.endTime).getTime();
+
+  function updateTimer() {
+    const currentTime = new Date().getTime() + timeOffsetHours * 3600 * 1000;
+    const timeRemainingMillis = eventEndTime - currentTime;
+
+    if (timeRemainingMillis > 0) {
+      const timeDifference = calculateTimeDifferenceInUnits(currentTime, eventEndTime);
+      timeRemainingDiv.innerHTML = `${timeDifference.hrs} hrs ${timeDifference.mins} mins ${timeDifference.sec} sec ${timeDifference.ms} ms`;
+      requestAnimationFrame(updateTimer);
+    } else {
+      timeRemainingDiv.innerHTML = "Event ended.";
     }
   }
 
   updateTimer();
 }
+
 
 function calculateTimeRemainingInCurrentEvent(currentEvent) {
   if (!currentEvent) return "No current event.";
