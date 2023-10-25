@@ -1,7 +1,7 @@
 const threshold = 0.09;
 const minPressureDiff = 1;
 const timeOffsetHours = 0;
-const apiCallIntervalInMinutes = 5;
+const apiCallIntervalInMinutes = 1;
 const mergeThreshold = 1;
 const highlightColor = '#e8e074';
 
@@ -119,15 +119,7 @@ function logCurrentTime() {
   const now = new Date();
   const offsetMilliseconds = timeOffsetHours * 3600000;
   now.setTime(now.getTime() + offsetMilliseconds);
-  const day = now.getDate();
-  const month = now.toLocaleString('default', {
-    month: 'long'
-  });
-  const year = now.getFullYear();
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  const seconds = String(now.getSeconds()).padStart(2, '0');
-  const formattedDateTime = `${month} ${day}, ${year} ${hours}:${minutes}:${seconds}`;
+  const formattedDateTime = moment(now).format('MMMM D, YYYY h:mm:ss A');
   updateCurrentTime(formattedDateTime);
 }
 
@@ -180,31 +172,62 @@ function calculateTimeRemainingInCurrentEvent(currentEvent) {
   return "Event ended.";
 }
 
+// Initialize API statistics variables
+let barometricReqCount = 0;
+let barometricErrCount = 0;
+let barometricRespTime = 0;
+let barometricLastAccess = 'N/A';
+
+let geoReqCount = 0;
+let geoErrCount = 0;
+let geoRespTime = 0;
+let geoLoadTime = 0;
+let geoLastAccess = 'N/A';
+
+function updateStats(apiType, loadTime, reqCount, respTime, errCount, lastAccess) {
+  document.getElementById(`${apiType}LoadTime`).innerText = loadTime + ' ms';
+  document.getElementById(`${apiType}ReqCount`).innerText = reqCount;
+  document.getElementById(`${apiType}RespTime`).innerText = respTime + ' ms';
+  document.getElementById(`${apiType}ErrCount`).innerText = errCount;
+  document.getElementById(`${apiType}LastAccess`).innerText = lastAccess;
+}
+
 async function fetchBarometricData() {
-  const position = await new Promise((resolve, reject) => {
-    navigator.geolocation.getCurrentPosition(resolve, reject);
-  });
-  const {
-    latitude,
-    longitude
-  } = position.coords;
+  const barometricStartTime = performance.now();
+  barometricLastAccess = new Date().toLocaleTimeString();
+  
+  try {
+    const geoStartTime = performance.now();
+    const position = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject);
+    });
+    const geoEndTime = performance.now();
+    geoLoadTime = geoRespTime = (geoEndTime - geoStartTime).toFixed(2);
+    geoReqCount++;
+    geoLastAccess = new Date().toLocaleTimeString();
+    updateStats('geo', geoLoadTime, geoReqCount, geoRespTime, geoErrCount, geoLastAccess);
 
-  // Fetch city name using latitude and longitude
-  const reverseGeocodeUrl = `https://geocode.maps.co/reverse?lat=${latitude}&lon=${longitude}`;
-  const geoResponse = await fetch(reverseGeocodeUrl);
-  const geoData = await geoResponse.json();
-  const cityName = geoData.address.city;
+    const { latitude, longitude } = position.coords;
+    const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=surface_pressure&timeformat=unixtime&timezone=America%2FNew_York&past_days=1&forecast_days=3`;
+    const response = await fetch(apiUrl, { cache: 'no-store' });
+    const data = await response.json();
 
-  // Update HTML to show city name
-  const timeSectionHeader = document.getElementById('time-section');
-  timeSectionHeader.textContent = `Current Time in ${cityName}:`;
+    // Update stats for Barometric API after successful fetch
+    barometricReqCount++;
+    const barometricEndTime = performance.now();
+    barometricRespTime = (barometricEndTime - barometricStartTime).toFixed(2);
+    updateStats('barometric', barometricStartTime.toFixed(2), barometricReqCount, barometricRespTime, barometricErrCount, barometricLastAccess);
 
-  const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=surface_pressure&timeformat=unixtime&timezone=America%2FNew_York&past_days=1&forecast_days=3`;
-  const response = await fetch(apiUrl, {
-    cache: 'no-store'
-  });
-  const data = await response.json();
-  return data;
+    return data;
+  } catch (err) {
+    // Update stats for Barometric API in case of error
+    barometricErrCount++;
+    updateStats('barometric', barometricStartTime.toFixed(2), barometricReqCount, barometricRespTime, barometricErrCount, barometricLastAccess);
+    // Update stats for Geolocation API in case of error
+    geoErrCount++;
+    updateStats('geo', geoLoadTime, geoReqCount, geoRespTime, geoErrCount, geoLastAccess);
+    throw err;
+  }
 }
 
 async function fetchData() {
