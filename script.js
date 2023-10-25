@@ -129,8 +129,6 @@ function logCurrentTime() {
   const seconds = String(now.getSeconds()).padStart(2, '0');
   const formattedDateTime = `${month} ${day}, ${year} ${hours}:${minutes}:${seconds}`;
   updateCurrentTime(formattedDateTime);
-  // Commented out console.log
-  // console.log(`Updated Time: ${formattedDateTime}`);
 }
 
 function updateCurrentEvent(event) {
@@ -295,41 +293,6 @@ async function fetchData() {
   updateTimeToNewEvent(calculateTimeToNewEvent(tableDataWithEvents));
   updateTimeRemainingInCurrentEvent(calculateTimeRemainingInCurrentEvent(currentEvent));
   updateTimeRemainingInCurrentEvent(currentEvent);
-}
-
-//This is incomplete and will require further development
-function createPressureTimeChart(timeData, pressureData) {
-  const ctx = document.getElementById('pressureTimeChart').getContext('2d');
-  const chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: timeData,
-      datasets: [{
-        label: 'Pressure over Time',
-        data: pressureData,
-        borderColor: 'rgba(75, 192, 192, 1)',
-        borderWidth: 1,
-        fill: false
-      }]
-    },
-    options: {
-      scales: {
-        x: {
-          type: 'time',
-          title: {
-            display: true,
-            text: 'Time'
-          }
-        },
-        y: {
-          title: {
-            display: true,
-            text: 'Pressure'
-          }
-        }
-      }
-    }
-  });
 }
 
 function updateCurrentTime(time) {
