@@ -133,29 +133,17 @@ function updateTimeToNewEvent() {
 function updateTimeRemainingInCurrentEvent(currentEvent) {
   const timeRemainingDiv = document.getElementById('timeRemainingInCurrentEvent');
 
-  if (!currentEvent) {
-    timeRemainingDiv.innerHTML = "No current event.";
-    return;
-  }
-
-  const eventEndTime = new Date(currentEvent.endTime).getTime();
-
   function updateTimer() {
-    const currentTime = new Date().getTime() + timeOffsetHours * 3600 * 1000;
-    const timeRemainingMillis = eventEndTime - currentTime;
+    const timeRemaining = calculateTimeRemainingInCurrentEvent(currentEvent);
+    timeRemainingDiv.innerHTML = timeRemaining;
 
-    if (timeRemainingMillis > 0) {
-      const timeDifference = calculateTimeDifferenceInUnits(currentTime, eventEndTime);
-      timeRemainingDiv.innerHTML = `${timeDifference.hrs} hrs ${timeDifference.mins} mins ${timeDifference.sec} sec ${timeDifference.ms} ms`;
-      requestAnimationFrame(updateTimer);
-    } else {
-      timeRemainingDiv.innerHTML = "Event ended.";
+    if (timeRemaining !== "Event ended." && timeRemaining !== "No current event.") {
+      setTimeout(updateTimer, 1);
     }
   }
 
   updateTimer();
 }
-
 
 function calculateTimeRemainingInCurrentEvent(currentEvent) {
   if (!currentEvent) return "No current event.";
