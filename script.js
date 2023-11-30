@@ -238,7 +238,7 @@ async function fetchBarometricData() {
 
     const { latitude, longitude } = position.coords;
     // const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=surface_pressure&timeformat=unixtime&timezone=America%2FNew_York&past_days=1&forecast_days=3`;
-    const apiUrl = `https://api.open-meteo.com/v1/gem?latitude=${latitude}&longitude=${longitude}&hourly=surface_pressure&timezone=America%2FNew_York&past_days=1&forecast_days=5`;
+    const apiUrl = `https://api.open-meteo.com/v1/gem?latitude=${latitude}&longitude=${longitude}&hourly=surface_pressure&timeformat=unixtime&timezone=America%2FNew_York&past_days=1&forecast_days=5`;
     const response = await fetch(apiUrl, { cache: 'no-store' });
     const data = await response.json();
 
